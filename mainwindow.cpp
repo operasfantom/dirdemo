@@ -7,6 +7,12 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QMessageBox>
+#include <QDirIterator>
+
+#include <memory>
+#include <thread>
+
+#include "repository.h"
 
 main_window::main_window(QWidget *parent)
     : QMainWindow(parent)
@@ -41,19 +47,26 @@ void main_window::select_directory()
     scan_directory(dir);
 }
 
-void main_window::scan_directory(QString const& dir)
+
+void main_window::scan_directory(QString const& directory_name)
 {
     ui->treeWidget->clear();
-    setWindowTitle(QString("Directory Content - %1").arg(dir));
-    QDir d(dir);
-    QFileInfoList list = d.entryInfoList();
-    for (QFileInfo file_info : list)
-    {
-        QTreeWidgetItem* item = new QTreeWidgetItem(ui->treeWidget);
-        item->setText(0, file_info.fileName());
-        item->setText(1, QString::number(file_info.size()));
-        ui->treeWidget->addTopLevelItem(item);
-    }
+    setWindowTitle(QString("Directory Content - %1").arg(directory_name));
+
+    controller.set_directory(directory_name);
+
+    auto callback = [this](const QFileInfoList &file_info_list) {
+        QList<QTreeWidgetItem*> items;
+        items.reserve(file_info_list.size());
+        for (QFileInfo file_info : file_info_list) {
+            QTreeWidgetItem* item = new QTreeWidgetItem(ui->treeWidget);
+            item->setText(0, file_info.fileName());
+            item->setText(1, QString::number(file_info.size()));
+            items.push_back(item);
+        }
+        ui->treeWidget->addTopLevelItems(items);
+    };
+    controller.scan_directory(std::move(callback), false);
 }
 
 void main_window::show_about_dialog()
