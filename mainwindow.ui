@@ -45,6 +45,11 @@
         <string>Size</string>
        </property>
       </column>
+      <column>
+       <property name="text">
+        <string>Check</string>
+       </property>
+      </column>
      </widget>
     </item>
    </layout>
@@ -55,7 +60,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>27</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -86,6 +91,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionScan_Directory"/>
+   <addaction name="separator"/>
   </widget>
   <action name="actionScan_Directory">
    <property name="text">

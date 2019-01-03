@@ -25,11 +25,19 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+        directory_controller.cpp \
+        repository.cpp \
+    scanningprogress.cpp
 
 HEADERS += \
-        mainwindow.h
+        mainwindow.h \
+        directory_controller.h \
+        repository.h \
+    scanningprogress.h
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+    scanningprogress.ui
 
+INCLUDEPATH += .

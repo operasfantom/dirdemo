@@ -13,6 +13,7 @@
 #include <thread>
 
 #include "repository.h"
+#include "scanningprogress.h"
 
 main_window::main_window(QWidget *parent)
     : QMainWindow(parent)
@@ -33,7 +34,7 @@ main_window::main_window(QWidget *parent)
     connect(ui->actionExit, &QAction::triggered, this, &QWidget::close);
     connect(ui->actionAbout, &QAction::triggered, this, &main_window::show_about_dialog);
 
-    scan_directory(QDir::homePath());
+//    scan_directory(QDir::homePath());
 }
 
 main_window::~main_window()
@@ -53,6 +54,11 @@ void main_window::scan_directory(QString const& directory_name)
     ui->treeWidget->clear();
     setWindowTitle(QString("Directory Content - %1").arg(directory_name));
 
+    progress_dialog = new ScanningProgress();//std::make_unique<ScanningProgress>();
+    progress_dialog->show();
+    connect(progress_dialog, SIGNAL(cancel()), this, SLOT(cancel_scanning())/*, Qt::BlockingQueuedConnection*/);
+    connect(&controller, SIGNAL(finished()), this, SLOT(close_progress_dialog()), Qt::BlockingQueuedConnection);
+
     controller.set_directory(directory_name);
 
     auto callback = [this](const QFileInfoList &file_info_list) {
@@ -60,8 +66,9 @@ void main_window::scan_directory(QString const& directory_name)
         items.reserve(file_info_list.size());
         for (QFileInfo file_info : file_info_list) {
             QTreeWidgetItem* item = new QTreeWidgetItem(ui->treeWidget);
-            item->setText(0, file_info.fileName());
+            item->setText(0, file_info.absoluteFilePath());
             item->setText(1, QString::number(file_info.size()));
+            item->setCheckState(2, Qt::CheckState::Unchecked);
             items.push_back(item);
         }
         ui->treeWidget->addTopLevelItems(items);
@@ -72,4 +79,19 @@ void main_window::scan_directory(QString const& directory_name)
 void main_window::show_about_dialog()
 {
     QMessageBox::aboutQt(this);
+}
+
+void main_window::remove_duplicates()
+{
+    controller.remove_duplicates();
+}
+
+void main_window::cancel_scanning()
+{
+    controller.cancel_scanning();
+}
+
+void main_window::close_progress_dialog()
+{
+    progress_dialog->close();
 }
