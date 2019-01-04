@@ -44,7 +44,7 @@ repository::repository()
     buffer2.resize(BUFFER_SIZE);
 }
 
-void repository::scan_directory(const QDir &directory, std::function<void(const QFileInfoList &file_info_list)> callback)
+void repository::scan_directory(const QDir &directory)
 {
     clear_storage();
     if (directory.exists()) {
@@ -73,7 +73,7 @@ void repository::scan_directory(const QDir &directory, std::function<void(const 
                                     break;
                                 }
                             } catch (std::runtime_error const& e) {
-
+                                //todo
                             }
                         }
                     }
@@ -101,7 +101,7 @@ void repository::scan_directory(const QDir &directory, std::function<void(const 
         }
         if (state == State::COMPLETED) {
             for (auto const& cluster : clusters) {
-                callback(cluster);
+                emit callback(&cluster);
             }
             return;
         }

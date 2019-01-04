@@ -15,8 +15,10 @@ enum class State {
     COMPLETED
 };
 
-class repository
+class repository : public QObject
 {
+    Q_OBJECT
+private:
     friend class directory_controller;
 
     std::atomic<State> state{State::NOT_STARTED};
@@ -31,10 +33,12 @@ class repository
     bool equals(const QFileInfo &file_info1, const QFileInfo &file_info2);
 
     void clear_storage();
+signals:
+    void callback(const QFileInfoList *file_info_list);
 public:
     repository();
 
-    void scan_directory(QDir const& directory, std::function<void(const QFileInfoList &file_info_list)> callback);
+    void scan_directory(QDir const& directory);
 
     void remove_duplicates();
 };

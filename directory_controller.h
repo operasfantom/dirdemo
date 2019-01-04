@@ -29,13 +29,17 @@ public:
 
     void set_directory(QString const& directory_name);
 
-    void scan_directory(std::function<void(const QFileInfoList &file_info_list)> callback, bool sync);
+    void scan_directory(bool sync);
 
     void remove_duplicates();
 
     void cancel_scanning();
+private slots:
+    void receive_duplicates_group(const QFileInfoList *file_info_list);
 signals:
-    void finished();
+    void finished(bool success);
+
+    void send_duplicates_group(const QFileInfoList *file_info_list);
 };
 
 #endif // DIRECTORY_CONTROLLER_H

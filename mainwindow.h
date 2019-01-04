@@ -28,8 +28,8 @@ private slots:
     void show_about_dialog();
     void remove_duplicates();
     void cancel_scanning();
-    void close_progress_dialog();
-
+    void close_progress_dialog(bool success);
+    void show_duplicates_group(const QFileInfoList *file_info_list);
 private:
     std::unique_ptr<Ui::MainWindow> ui;
 
