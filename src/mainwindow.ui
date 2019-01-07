@@ -92,6 +92,7 @@
    </attribute>
    <addaction name="actionScan_Directory"/>
    <addaction name="separator"/>
+   <addaction name="actionRemove_Duplicates"/>
   </widget>
   <action name="actionScan_Directory">
    <property name="text">
@@ -106,6 +107,11 @@
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="actionRemove_Duplicates">
+   <property name="text">
+    <string>Remove Duplicates</string>
    </property>
   </action>
  </widget>

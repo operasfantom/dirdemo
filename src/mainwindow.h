@@ -3,6 +3,7 @@
 
 
 #include <QMainWindow>
+#include <QFileInfoList>
 
 #include <memory>
 #include <thread>
@@ -19,19 +20,21 @@ class main_window : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit main_window(QWidget *parent = 0);
+    explicit main_window(QWidget *parent = nullptr);
     ~main_window();
 
 private slots:
     void select_directory();
-    void scan_directory(QString const& directory_name);
+    void scan_directory(QString directory_name);
     void show_about_dialog();
     void remove_duplicates();
     void cancel_scanning();
     void close_progress_dialog(bool success);
-    void show_duplicates_group(const QFileInfoList *file_info_list);
+    void show_duplicates_group(QFileInfoList file_info_list);
+
 private:
-    std::unique_ptr<Ui::MainWindow> ui;
+//    std::unique_ptr<Ui::MainWindow> ui;
+    Ui::MainWindow* ui;
 
     ScanningProgress * progress_dialog;
 

@@ -1,0 +1,10 @@
+**/*.user
+x64/
+.vs/
+debug/
+release/
+GeneratedFiles/
+.qmake*
+dirdemo.vcxproj*
+dirdemo.sln
+test_folder
