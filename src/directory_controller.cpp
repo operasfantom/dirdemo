@@ -53,10 +53,12 @@ void directory_controller::scan_directory0()
         state = State::IN_PROCESS;
         group_by_size();
         group_by_hash();
-        for (auto &&duplicate_group : files_by_hash) {
-            if (duplicate_group.size() > 1) {
-                clusters.push_back(std::move(duplicate_group));
-                emit send_duplicates_group(clusters.back());
+        if (state == State::IN_PROCESS) {
+            for (auto &&duplicate_group : files_by_hash) {
+                if (duplicate_group.size() > 1) {
+                    clusters.push_back(std::move(duplicate_group));
+                    emit send_duplicates_group(clusters.back());
+                }
             }
         }
         if (state == State::IN_PROCESS) {

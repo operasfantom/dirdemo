@@ -8,4 +8,5 @@ SOURCES +=  \
         tst_test.cpp \
         ../src/directory_controller.cpp
 
-HEADERS += ../src/directory_controller.h
+HEADERS += ../src/directory_controller.h \
+           tst_test.h
