@@ -92,7 +92,15 @@ void test::test_large_group()
     const int N = 5'000;
     create_file(QString('0', 4 * 1024 * 1024), N);
 
-    controller.scan_directory(true);
+    {
+        QTime myTimer;
+        myTimer.start();
+
+        controller.scan_directory(true);
+
+        int millis = myTimer.elapsed();
+        qDebug(QString::number(millis).toUtf8() + " ms");
+    }
 
     QCOMPARE((QSet<int>{N}).toList(), group_sizes.toList());
 }
