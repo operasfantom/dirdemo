@@ -10,16 +10,11 @@
 #include <thread>
 #include <functional>
 
-//namespace Ui {
-//class directory_controller;
-//}
-
 class directory_controller : public QObject
 {
     Q_OBJECT
 private:
     enum class State {
-        NOT_STARTED,
         CANCELLED,
         IN_PROCESS,
         COMPLETED
@@ -27,9 +22,11 @@ private:
 
     QDir directory;
 
-    std::thread scan_thread;
+    int files_count = 0;
 
-    std::atomic<State> state{State::NOT_STARTED};
+    QThread* scan_thread;
+
+    std::atomic<State> state{State::COMPLETED};
 
     QHash<qint64, QFileInfoList> files_by_size;
 
@@ -69,6 +66,8 @@ signals:
     void finished(bool success);
 
     void send_duplicates_group(QFileInfoList file_info_list);
+
+    void set_progress(int value);
 };
 
 #endif // DIRECTORY_CONTROLLER_H

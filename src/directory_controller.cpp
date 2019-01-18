@@ -17,17 +17,23 @@ void directory_controller::group_by_size()
     while (state == State::IN_PROCESS && it.hasNext()) {
         QFileInfo file_info(it.next());
         files_by_size[file_info.size()].push_back(file_info);
+        ++files_count;
     }
+    int i = 0;
     for (auto it = files_by_size.begin(); it != files_by_size.end(); ++it) {
         if (it.value().size() == 1) {
             unique.insert(it.value()[0].absoluteFilePath());
         }
+
+        emit set_progress(0.5 * (++i) / files_count);
     }
 }
 
 void directory_controller::group_by_hash()
 {
     QDirIterator it(directory.path(), QDir::Files, QDirIterator::Subdirectories);
+
+    int i = 0;
     while (state == State::IN_PROCESS && it.hasNext()) {
         QFileInfo file_info(it.next());
         if (!unique.contains(file_info.absoluteFilePath())){
@@ -43,6 +49,8 @@ void directory_controller::group_by_hash()
                 file.close();
             }
         }
+
+        emit set_progress(0.5 * (++i) / files_count);
     }
 }
 
@@ -64,17 +72,10 @@ void directory_controller::scan_directory0()
         if (state == State::IN_PROCESS) {
             state = State::COMPLETED;
         }
-        if (state == State::COMPLETED) {
-            return;
-        }
-        if (state == State::CANCELLED) {
-            //todo
-            return;
-        }
     }
 }
 
-directory_controller::directory_controller(QObject *parent) : QObject(parent) {
+directory_controller::directory_controller(QObject *parent) : QObject(parent), files_count(0) {
     buffer.resize(BUFFER_SIZE);
     files_by_size.reserve(RESERVED_BUCKETS);
     files_by_hash.reserve(RESERVED_BUCKETS);
@@ -90,25 +91,21 @@ void directory_controller::set_directory(QString directory_name)
 
 void directory_controller::scan_directory(bool sync)
 {
-    if (sync) {
+    auto f = [this]() {
         try {
             scan_directory0();
             emit finished(true);
         } catch (...) {
             emit finished(false);
         }
+    };
+    if (sync) {
+        f();
     } else {
-        if (scan_thread.joinable()) {
-            scan_thread.join();
-        }
-        scan_thread = std::thread([this]() {
-            try {
-                scan_directory0();
-                emit finished(true);
-            } catch (...) {
-                emit finished(false);
-            }
+        scan_thread = QThread::create([this, f]() {
+            f();
         });
+        scan_thread->start();
     }
 }
 

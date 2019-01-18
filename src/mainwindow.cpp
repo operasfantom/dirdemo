@@ -13,7 +13,10 @@
 #include <memory>
 #include <thread>
 
-#include "scanningprogress.h"
+void main_window::finished(bool success)
+{
+    ui->cancelButton->setEnabled(false);
+}
 
 main_window::main_window(QWidget *parent)
     : QMainWindow(parent)
@@ -39,6 +42,8 @@ main_window::main_window(QWidget *parent)
     connect(ui->actionRemove_Duplicates, &QAction::triggered, this, &main_window::remove_duplicates);
 
     connect(&controller, SIGNAL(send_duplicates_group(QFileInfoList)), this, SLOT(show_duplicates_group(QFileInfoList)));
+    connect(&controller, &directory_controller::finished, this, &main_window::finished);
+    connect(&controller, &directory_controller::set_progress, ui->progressBar, &QProgressBar::setValue);
 //    scan_directory(QDir::homePath());
 }
 
@@ -58,13 +63,10 @@ void main_window::select_directory()
 
 void main_window::scan_directory(QString directory_name)
 {
+    ui->cancelButton->setEnabled(true);
+
     ui->treeWidget->clear();
     setWindowTitle(QString("Directory Content - %1").arg(directory_name));
-
-    progress_dialog = new ScanningProgress();
-    progress_dialog->show();
-    connect(progress_dialog, SIGNAL(cancel()), this, SLOT(cancel_scanning()));
-    connect(&controller, SIGNAL(finished(bool)), this, SLOT(close_progress_dialog(bool)), Qt::BlockingQueuedConnection);
 
     controller.set_directory(directory_name);
 
@@ -92,11 +94,7 @@ void main_window::remove_duplicates()
 void main_window::cancel_scanning()
 {
     controller.cancel_scanning();
-}
-
-void main_window::close_progress_dialog(bool success)
-{
-    progress_dialog->close();
+    finished(false);
 }
 
 void main_window::show_duplicates_group(QFileInfoList file_info_list)
@@ -115,4 +113,9 @@ void main_window::show_duplicates_group(QFileInfoList file_info_list)
     items.push_back(new QTreeWidgetItem());//fake separator
 
     ui->treeWidget->addTopLevelItems(items);   
+}
+
+void main_window::on_cancelButton_clicked()
+{
+    cancel_scanning();
 }

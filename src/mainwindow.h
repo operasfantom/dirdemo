@@ -9,7 +9,6 @@
 #include <thread>
 
 #include "directory_controller.h"
-#include "scanningprogress.h"
 
 namespace Ui {
 class MainWindow;
@@ -19,6 +18,9 @@ class main_window : public QMainWindow
 {
     Q_OBJECT
 
+    void finished(bool success);
+
+    void set_progress(int value);
 public:
     explicit main_window(QWidget *parent = nullptr);
     ~main_window();
@@ -29,14 +31,13 @@ private slots:
     void show_about_dialog();
     void remove_duplicates();
     void cancel_scanning();
-    void close_progress_dialog(bool success);
     void show_duplicates_group(QFileInfoList file_info_list);
+
+    void on_cancelButton_clicked();
 
 private:
 //    std::unique_ptr<Ui::MainWindow> ui;
     Ui::MainWindow* ui;
-
-    ScanningProgress * progress_dialog;
 
     directory_controller controller;
 };
