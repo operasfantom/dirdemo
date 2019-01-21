@@ -10,64 +10,65 @@
 #include <thread>
 #include <functional>
 
-class directory_controller : public QObject
-{
-    Q_OBJECT
+class directory_controller : public QObject {
+Q_OBJECT
 private:
-    enum class State {
-        CANCELLED,
-        IN_PROCESS,
-        COMPLETED
-    };
+	enum class State {
+		CANCELLED,
+		IN_PROCESS,
+		COMPLETED
+	};
 
-    QDir directory;
+	QDir directory;
 
-    int files_count = 0;
+	int files_count = 0;
 
-    QThread* scan_thread;
+	QThread* scan_thread;
 
-    std::atomic<State> state{State::COMPLETED};
+	std::atomic<State> state{State::COMPLETED};
 
-    QHash<qint64, QFileInfoList> files_by_size;
+	QHash<qint64, QFileInfoList> files_by_size;
 
-    QSet<QString> unique;
+	QSet<QString> unique;
 
-    QHash<QByteArray, QFileInfoList> files_by_hash;
+	QHash<QByteArray, QFileInfoList> files_by_hash;
 
-    QVector<QFileInfoList> clusters;
+	QVector<QFileInfoList> clusters;
 
-    const int BUFFER_SIZE = 4 * 1024 * 1024;
+	const int BUFFER_SIZE = 4 * 1024 * 1024;
 
-    const int RESERVED_BUCKETS = 100 * 1000;//todo increase
+	const int RESERVED_BUCKETS = 100 * 1000; //todo increase
 
-    QByteArray buffer;
+	QByteArray buffer;
 
-    void clear_storage();
+	void clear_storage();
 
-    void group_by_size();
+	void group_by_size();
 
-    void group_by_hash();
+	void group_by_hash();
 
-    void scan_directory0();
+	void scan_directory0();
 public:
 
-    explicit directory_controller(QObject *parent = nullptr);
+	explicit directory_controller(QObject* parent = nullptr);
 
-    virtual ~directory_controller() = default;
+	virtual ~directory_controller() = default;
 
-    void set_directory(QString directory_name);
+	void set_directory(QString directory_name);
 
-    void scan_directory(bool sync);
+	void scan_directory(bool sync);
 
-    void remove_files(QFileInfoList files);
+	static bool remove_file(QString file_name);
 
-    void cancel_scanning();
+	void cancel_scanning();
 signals:
-    void finished(bool success);
+	void finished(bool success);
 
-    void send_duplicates_group(QFileInfoList file_info_list);
+	void send_duplicates_group(QFileInfoList file_info_list);
 
-    void set_progress(int value);
+	void set_progress(int value);
+
+	void caused_error(QString message);
 };
 
 #endif // DIRECTORY_CONTROLLER_H

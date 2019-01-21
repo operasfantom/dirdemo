@@ -5,7 +5,8 @@ debug/
 release/
 GeneratedFiles/
 .qmake*
-dirdemo.vcxproj*
+*vcxproj*
+*.bat
 dirdemo.sln
 test_folder
 Makefile
