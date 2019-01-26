@@ -21,10 +21,13 @@ public:
 	bool removeColumns(int position, int columns);
 	int childNumber() const;
 	bool setData(int column, const QVariant& value);
+	bool isChecked();
+	void setChecked(bool value);
 private:
 	QList<TreeItem*> childItems;
 	QVector<QVariant> itemData;
 	TreeItem* parentItem;
+	bool checked = false;
 };
 
 #endif // TREEITEM_H

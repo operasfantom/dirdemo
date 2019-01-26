@@ -27,20 +27,24 @@ int TreeModel::columnCount(const QModelIndex& /* parent */) const {
 QVariant TreeModel::data(const QModelIndex& index, int role) const {
 	if (!index.isValid())
 		return QVariant();
-
-	if (role != Qt::DisplayRole && role != Qt::EditRole)
-		return QVariant();
-
 	TreeItem* item = getItem(index);
-
+	if (role == Qt::CheckStateRole && index.column() == 2 && isValidRow(index.row())) {
+		return static_cast<int>(item->isChecked() ? Qt::Checked : Qt::Unchecked);
+	}
+	if (role != Qt::DisplayRole && role != Qt::EditRole) {
+		return QVariant();
+	}
 	return item->data(index.column());
 }
 
 Qt::ItemFlags TreeModel::flags(const QModelIndex& index) const {
 	if (!index.isValid())
 		return 0;
+	if (index.column() == 2) {
+		return Qt::ItemIsUserCheckable | Qt::ItemIsEnabled | Qt::ItemIsEditable;
+	}
 
-	return Qt::ItemIsEditable | QAbstractItemModel::flags(index);
+	return QAbstractItemModel::flags(index);;
 }
 
 TreeItem* TreeModel::getItem(const QModelIndex& index) const {
@@ -145,17 +149,45 @@ void TreeModel::addGroup(QFileInfoList list) {
 			setData(index(count + i, 0), list[i].absoluteFilePath());
 			setData(index(count + i, 1), list[i].size());
 		}
-		// setData(index(count + i, 2), QCheckBox());
 	}
 }
 
-QStringList TreeModel::allFiles() const {
-	//todo
-	return QStringList();
+QString TreeModel::fileName(int row) const {
+	return data(index(row, 0), Qt::DisplayRole).toString();
 }
 
-void TreeModel::hide(QString file_name) {
-	//todo
+bool TreeModel::isValidRow(int i) const {
+	return data(this->index(i, 0), Qt::DisplayRole).isValid();
+}
+
+bool TreeModel::isChecked(int row) const {
+	return getItem(index(row, 2))->isChecked();
+}
+
+QStringList TreeModel::checkedItems() const {
+	QStringList res;
+	for (int i = 0; i < rowCount(); ++i) {
+		if (isValidRow(i) && isChecked(i)) {
+			res.append(fileName(i));
+		}
+	}
+	return res;
+}
+
+void TreeModel::hideFiles(QSet<QString> set) {
+	QVector<int> rows;
+	for (int i = 0; i < rowCount(); ++i) {
+		if (isValidRow(i)) {
+			if (isChecked(i)) {
+				if (set.contains(data(index(i, 0), Qt::DisplayRole).toString())) {
+					rows.append(i);
+				}
+			}
+		}
+	}
+	for (int i = 0; i < rows.size(); ++i) {
+		removeRows(rows[i] - i, 1);
+	}
 }
 
 void TreeModel::sortByColumn(int column, Qt::SortOrder order) {
@@ -178,7 +210,8 @@ void TreeModel::sort(int column, Qt::SortOrder order) {
 			t.clear();
 		}
 	}
-	if (column == 0) {
+	switch (column) {
+	case 0:
 		for (auto& chunk : res) {
 			std::sort(chunk.begin(), chunk.end(), [](P const& x, P const& y) {
 				return x.first < y.first;
@@ -187,20 +220,23 @@ void TreeModel::sort(int column, Qt::SortOrder order) {
 				std::reverse(chunk.begin(), chunk.end());
 			}
 		}
-	}
-	else {
+		break;
+	case 1:
 		std::sort(res.begin(), res.end(), [](QVector<P> const& x, QVector<P> const& y) {
 			return x[0].second < y[0].second;
 		});
 		if (order == Qt::DescendingOrder) {
 			std::reverse(res.begin(), res.end());
 		}
+		break;
+	case 2:
+		break;
 	}
 	clear();
 	for (auto& chunk : res) {
 		QFileInfoList list;
 		list.reserve(chunk.size());
-		for (auto &p : chunk) {
+		for (auto& p : chunk) {
 			list.append(QFileInfo(p.first));
 		}
 		addGroup(list);
@@ -214,10 +250,16 @@ int TreeModel::rowCount(const QModelIndex& parent) const {
 }
 
 bool TreeModel::setData(const QModelIndex& index, const QVariant& value, int role) {
-	if (role != Qt::EditRole)
+	if (role != Qt::EditRole && role != Qt::CheckStateRole)
 		return false;
-
 	TreeItem* item = getItem(index);
+	if (role == Qt::CheckStateRole && index.column() == 2) {
+		int val = value.toInt();
+		bool value = (static_cast<Qt::CheckState>(val) == Qt::Checked);
+		item->setChecked(value);
+		return value;
+	}
+
 	bool result = item->setData(index.column(), value);
 
 	if (result) {

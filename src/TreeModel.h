@@ -44,8 +44,11 @@ public:
 	void clear();
 
 	void addGroup(QFileInfoList list);
-	QStringList allFiles() const;
-	void hide(QString file_name);
+	QString fileName(int row) const;
+	bool isValidRow(int i) const;
+	bool isChecked(int row) const;
+	QStringList checkedItems() const;
+	void hideFiles(QSet<QString>);
 public slots:
 	void sortByColumn(int column, Qt::SortOrder order);
 private:

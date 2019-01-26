@@ -22,7 +22,7 @@ void main_window::show_message(QString message, Status status) {
 
 main_window::main_window(QWidget* parent)
 	: QMainWindow(parent)
-	  , ui(new Ui::MainWindow), treeModel(new TreeModel(QStringList{"File name", "Size"})) {
+	  , ui(new Ui::MainWindow), treeModel(new TreeModel(QStringList{"File name", "Size", "Remove?"})) {
 	ui->setupUi(this);
 	setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, size(),
 	                                qApp->desktop()->availableGeometry(this)));
@@ -86,15 +86,16 @@ void main_window::show_about_dialog() {
 }
 
 void main_window::remove_duplicates() {
-	/*for (auto file_name : treeModel->allFiles()) {
+	QSet<QString> removed_files;
+	for (auto file_name : treeModel->checkedItems()) {
 		if (controller.remove_file(file_name)) {
-			treeModel->hide(file_name);			
+			removed_files.insert(file_name);
 		}
 		else {
 			show_message("couldn't remove file: " + file_name, ERROR);
 		}
-	}*/
-	// treeModel->refresh();
+	}
+	treeModel->hideFiles(removed_files);
 }
 
 void main_window::cancel_scanning() {
