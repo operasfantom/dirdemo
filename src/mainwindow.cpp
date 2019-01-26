@@ -7,6 +7,7 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QTreeWidgetItem>
+#include <QMetaType>
 
 #include <thread>
 
@@ -19,6 +20,8 @@ void main_window::finished(bool success) {
 void main_window::show_message(QString message, Status status) {
 	ui->messageLog->appendPlainText(to_string(status) + ":" + message);
 }
+
+Q_DECLARE_METATYPE(QFileInfoList);
 
 main_window::main_window(QWidget* parent)
 	: QMainWindow(parent)
@@ -35,7 +38,7 @@ main_window::main_window(QWidget* parent)
 	ui->actionScan_Directory->setIcon(style.standardIcon(QCommonStyle::SP_DialogOpenButton));
 	ui->actionExit->setIcon(style.standardIcon(QCommonStyle::SP_DialogCloseButton));
 	ui->actionAbout->setIcon(style.standardIcon(QCommonStyle::SP_DialogHelpButton));
-
+	
 	qRegisterMetaType<QFileInfoList>("QFileInfoList");
 
 	connect(ui->actionScan_Directory, &QAction::triggered, this, &main_window::select_directory);
@@ -43,8 +46,7 @@ main_window::main_window(QWidget* parent)
 	connect(ui->actionAbout, &QAction::triggered, this, &main_window::show_about_dialog);
 	connect(ui->actionRemove_Duplicates, &QAction::triggered, this, &main_window::remove_duplicates);
 
-	connect(&controller, SIGNAL(send_duplicates_group(QFileInfoList)), this,
-	        SLOT(show_duplicates_group(QFileInfoList)));
+	connect(&controller, SIGNAL(send_duplicates_group(QFileInfoList)), this, SLOT(show_duplicates_group(QFileInfoList)), Qt::BlockingQueuedConnection);
 	connect(&controller, &directory_controller::finished, this, &main_window::finished);
 	connect(&controller, &directory_controller::set_progress, ui->progressBar, &QProgressBar::setValue);
 
