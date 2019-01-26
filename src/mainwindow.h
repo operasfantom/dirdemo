@@ -4,6 +4,8 @@
 
 #include <QMainWindow>
 
+#include "TreeModel.h"
+
 #include "directory_controller.h"
 
 namespace Ui {
@@ -32,6 +34,7 @@ Q_OBJECT
 		case ERROR:
 			return "ERROR";
 		}
+		return "";
 	}
 
 	void show_message(QString message, Status status);
@@ -54,6 +57,7 @@ private:
 	Ui::MainWindow* ui;
 
 	directory_controller controller;
+	TreeModel* treeModel;
 };
 
 #endif // MAINWINDOW_H

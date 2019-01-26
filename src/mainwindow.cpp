@@ -6,11 +6,14 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QMessageBox>
+#include <QTreeWidgetItem>
 
 #include <thread>
 
 void main_window::finished(bool success) {
 	ui->cancelButton->setEnabled(false);
+	ui->treeView->setSortingEnabled(true);
+	connect(ui->treeView->header(), &QHeaderView::sortIndicatorChanged, treeModel, &TreeModel::sortByColumn);
 }
 
 void main_window::show_message(QString message, Status status) {
@@ -19,14 +22,14 @@ void main_window::show_message(QString message, Status status) {
 
 main_window::main_window(QWidget* parent)
 	: QMainWindow(parent)
-	  , ui(new Ui::MainWindow) {
+	  , ui(new Ui::MainWindow), treeModel(new TreeModel(QStringList{"File name", "Size"})) {
 	ui->setupUi(this);
 	setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter, size(),
 	                                qApp->desktop()->availableGeometry(this)));
 
-	ui->treeWidget->header()->setSectionResizeMode(0, QHeaderView::Stretch);
-	ui->treeWidget->header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-	ui->treeWidget->header()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+	ui->treeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+	// ui->treeView->header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+	// ui->treeView->header()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
 
 	QCommonStyle style;
 	ui->actionScan_Directory->setIcon(style.standardIcon(QCommonStyle::SP_DialogOpenButton));
@@ -49,6 +52,7 @@ main_window::main_window(QWidget* parent)
 		show_message(message, ERROR);
 	});
 	//    scan_directory(QDir::homePath());
+	ui->treeView->setModel(treeModel);
 }
 
 main_window::~main_window() {
@@ -59,15 +63,17 @@ void main_window::select_directory() {
 	QString dir = QFileDialog::getExistingDirectory(this, "Select Directory for Scanning",
 	                                                QString(),
 	                                                QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-
-	scan_directory(dir);
+	if (!dir.isEmpty()) {
+		scan_directory(dir);
+	}
 }
 
 
 void main_window::scan_directory(QString directory_name) {
 	ui->cancelButton->setEnabled(true);
+	ui->treeView->setSortingEnabled(false);
 
-	ui->treeWidget->clear();
+	treeModel->clear();
 	setWindowTitle(QString("Directory Content - %1").arg(directory_name));
 
 	controller.set_directory(directory_name);
@@ -80,39 +86,25 @@ void main_window::show_about_dialog() {
 }
 
 void main_window::remove_duplicates() {
-	for (auto item : ui->treeWidget->findItems(QString("*"), Qt::MatchWrap | Qt::MatchWildcard | Qt::MatchRecursive)) {
-		if (item->columnCount() == 3 && item->checkState(2) == Qt::CheckState::Checked) {
-			QString file_name = item->text(0);
-			if (controller.remove_file(file_name)) {
-				item->setHidden(true);
-			}
-			else {
-				show_message("couldn't remove file: " + file_name, Status::ERROR);
-			}
+	/*for (auto file_name : treeModel->allFiles()) {
+		if (controller.remove_file(file_name)) {
+			treeModel->hide(file_name);			
 		}
-	}
+		else {
+			show_message("couldn't remove file: " + file_name, ERROR);
+		}
+	}*/
+	// treeModel->refresh();
 }
 
 void main_window::cancel_scanning() {
 	controller.cancel_scanning();
+	show_message("scanning was cancelled", WARN);
 	finished(false);
 }
 
 void main_window::show_duplicates_group(QFileInfoList file_info_list) {
-	QList<QTreeWidgetItem*> items;
-	items.reserve(file_info_list.size());
-	std::transform(file_info_list.begin(), file_info_list.end(), items.begin(), [this](QFileInfo file_info) {
-		auto item = new QTreeWidgetItem(ui->treeWidget);
-		item->setText(0, file_info.absoluteFilePath());
-		item->setText(1, QString::number(file_info.size()));
-		item->setCheckState(2, Qt::CheckState::Unchecked);
-
-		return item;
-	});
-
-	items.push_back(new QTreeWidgetItem()); //fake separator
-
-	ui->treeWidget->addTopLevelItems(items);
+	treeModel->addGroup(file_info_list);
 }
 
 void main_window::on_cancelButton_clicked() {

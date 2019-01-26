@@ -26,11 +26,15 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-        directory_controller.cpp
+        directory_controller.cpp \
+	TreeItem.cpp \
+	TreeModel.cpp		
 
 HEADERS += \
         mainwindow.h \
-        directory_controller.h
+        directory_controller.h \
+	TreeItem.h \
+	TreeModel.h
 
 FORMS += \
         mainwindow.ui
